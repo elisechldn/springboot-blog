@@ -89,4 +89,40 @@ public class ArticleController {
         articleRepository.delete(article);
         return ResponseEntity.noContent().build();
     }
-}
+
+    @GetMapping("/search-title")
+    public ResponseEntity<List<Article>>getArticlesByTitle(@RequestParam String searchTerms) {
+        List<Article> articles = articleRepository.findByTitle(searchTerms);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/article-content")
+    public ResponseEntity<List<Article>> getArticlesByContent(@RequestParam String searchContent) {
+        List<Article> articles = articleRepository.findByContentContaining(searchContent);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<Article>> getArticlesCreatedAfter(@RequestParam LocalDateTime searchDate) {
+        List<Article> articles = articleRepository.findByCreatedAtAfter(searchDate);
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+
+    @GetMapping("/last-articles")
+    public ResponseEntity<List<Article>>getFiveLastArticles() {
+        List<Article> articles = articleRepository.findFiveLastArticlesOrderByCreatedAtDesc();
+        if (articles.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(articles);
+    }
+ }
