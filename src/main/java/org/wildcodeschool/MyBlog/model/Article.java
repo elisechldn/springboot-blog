@@ -2,6 +2,7 @@ package org.wildcodeschool.MyBlog.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import org.wildcodeschool.MyBlog.model.Category;
 
 @Entity
 public class Article {
@@ -20,6 +21,10 @@ public class Article {
 
     @Column(nullable= false)
     private LocalDateTime updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name="category_id")
+    private Category category;
 
     //Getters & Setters
 
@@ -47,11 +52,11 @@ public class Article {
         this.content = content;
     }
 
-    public LocalDateTime getCreated_at() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime created_at) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -61,5 +66,13 @@ public class Article {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 }
