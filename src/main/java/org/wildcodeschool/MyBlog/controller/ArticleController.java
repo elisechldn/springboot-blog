@@ -8,8 +8,11 @@ import org.wildcodeschool.MyBlog.repository.ArticleRepository;
 import org.wildcodeschool.MyBlog.model.Article;
 import org.wildcodeschool.MyBlog.repository.CategoryRepository;
 import org.wildcodeschool.MyBlog.model.Category;
+import org.wildcodeschool.MyBlog.repository.ImageRepository;
+import org.wildcodeschool.MyBlog.model.Image;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,10 +21,12 @@ import java.util.stream.Collectors;
 public class ArticleController {
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
+    private final ImageRepository imageRepository;
 
-    public ArticleController(ArticleRepository articleRepository, CategoryRepository categoryRepository) {
+    public ArticleController(ArticleRepository articleRepository, CategoryRepository categoryRepository, ImageRepository imageRepository) {
         this.articleRepository = articleRepository;
         this.categoryRepository = categoryRepository;
+        this.imageRepository = imageRepository;
     }
 
     @GetMapping
@@ -55,6 +60,25 @@ public class ArticleController {
             }
             article.setCategory(category);
         }
+
+        if(article.getImages() != null && !article.getImages().isEmpty()) {
+            List<Image> validImages = new ArrayList<>();
+            for(Image image : article.getImages()) {
+                if(image.getId() != null) {
+                    Image existingImage = imageRepository.findById(image.getId()).orElse(null);
+                    if (existingImage != null) {
+                        validImages.add(existingImage);
+                    } else {
+                        return ResponseEntity.badRequest().body(null);
+                    }
+                } else {
+                    Image savedImage = imageRepository.save(image);
+                    validImages.add(savedImage);
+                }
+            }
+            article.setImages(validImages);
+        }
+
         Article savedArticle = articleRepository.save(article);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedArticle));
     }
@@ -76,6 +100,30 @@ public class ArticleController {
         return ResponseEntity.badRequest().body(null);
         }
         article.setCategory(category);
+        }
+
+        if (articleDetails.getImages() != null) {
+            List<Image> validImages = new ArrayList<>();
+            for (Image image : articleDetails.getImages()) {
+                if (image.getId() != null) {
+                    // Vérification des images existantes
+                    Image existingImage = imageRepository.findById(image.getId()).orElse(null);
+                    if (existingImage != null) {
+                        validImages.add(existingImage);
+                    } else {
+                        return ResponseEntity.badRequest().build(); // Image non trouvée, retour d'une erreur
+                    }
+                } else {
+                    // Création de nouvelles images
+                    Image savedImage = imageRepository.save(image);
+                    validImages.add(savedImage);
+                }
+            }
+            // Mettre à jour la liste des images associées
+            article.setImages(validImages);
+        } else {
+            // Si aucune image n'est fournie, on nettoie la liste des images associées
+            article.getImages().clear();
         }
 
         Article updatedArticle = articleRepository.save(article);
@@ -141,6 +189,9 @@ public class ArticleController {
         articleDTO.setUpdatedAt(article.getUpdatedAt());
         if (article.getCategory() != null) {
             articleDTO.setCategoryName(article.getCategory().getName());
+        }
+        if (article.getImages() != null) {
+            articleDTO.setImageUrls(article.getImages().stream().map(Image::getUrl).collect(Collectors.toList()));
         }
         return articleDTO;
     }
