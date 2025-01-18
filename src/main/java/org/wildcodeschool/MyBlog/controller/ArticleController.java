@@ -4,12 +4,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.wildcodeschool.MyBlog.dto.ArticleDTO;
+import org.wildcodeschool.MyBlog.dto.AuthorDTO;
+import org.wildcodeschool.MyBlog.repository.ArticleAuthorRepository;
+import org.wildcodeschool.MyBlog.model.ArticleAuthor;
 import org.wildcodeschool.MyBlog.repository.ArticleRepository;
 import org.wildcodeschool.MyBlog.model.Article;
 import org.wildcodeschool.MyBlog.repository.CategoryRepository;
 import org.wildcodeschool.MyBlog.model.Category;
 import org.wildcodeschool.MyBlog.repository.ImageRepository;
 import org.wildcodeschool.MyBlog.model.Image;
+import org.wildcodeschool.MyBlog.repository.AuthorRepository;
+import org.wildcodeschool.MyBlog.model.Author;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,11 +28,15 @@ public class ArticleController {
     private final ArticleRepository articleRepository;
     private final CategoryRepository categoryRepository;
     private final ImageRepository imageRepository;
+    private final ArticleAuthorRepository articleAuthorRepository;
+    private final AuthorRepository authorRepository;
 
-    public ArticleController(ArticleRepository articleRepository, CategoryRepository categoryRepository, ImageRepository imageRepository) {
+    public ArticleController(ArticleRepository articleRepository, CategoryRepository categoryRepository, ImageRepository imageRepository, ArticleAuthorRepository articleAuthorRepository, AuthorRepository authorRepository) {
         this.articleRepository = articleRepository;
         this.categoryRepository = categoryRepository;
         this.imageRepository = imageRepository;
+        this.articleAuthorRepository = articleAuthorRepository;
+        this.authorRepository = authorRepository;
     }
 
     @GetMapping
@@ -192,6 +202,19 @@ public class ArticleController {
         }
         if (article.getImages() != null) {
             articleDTO.setImageUrls(article.getImages().stream().map(Image::getUrl).collect(Collectors.toList()));
+        }
+
+        if (article.getArticleAuthors() != null) {
+            articleDTO.setAuthors(article.getArticleAuthors().stream()
+                    .filter(articleAuthor -> articleAuthor.getAuthor() != null)
+                    .map(articleAuthor -> {
+                        AuthorDTO authorDTO = new AuthorDTO();
+                        authorDTO.setId(articleAuthor.getAuthor().getId());
+                        authorDTO.setFirstname(articleAuthor.getAuthor().getFirstname());
+                        authorDTO.setLastname(articleAuthor.getAuthor().getLastname());
+                        return authorDTO;
+                    })
+                    .collect(Collectors.toList()));
         }
         return articleDTO;
     }
