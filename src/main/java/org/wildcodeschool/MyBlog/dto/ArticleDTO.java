@@ -12,7 +12,7 @@ public class ArticleDTO {
     private LocalDateTime updatedAt;
     private String categoryName;
     private List<String> imageUrls;
-    private List<ArticleAuthor> articleAuthors;
+    private List<AuthorDTO> authors;
 
     public Long getId() {
         return id;
@@ -62,7 +62,11 @@ public class ArticleDTO {
         this.imageUrls = imageUrls;
     }
 
-    public void setAuthors(List<ArticleAuthor> articleAuthors) {
-        this.articleAuthors = articleAuthors;
+    public void setAuthors(List<AuthorDTO> articleAuthors) {
+        this.authors = authors;
+    }
+
+    public List<AuthorDTO> getAuthors() {
+        return authors;
     }
 }
