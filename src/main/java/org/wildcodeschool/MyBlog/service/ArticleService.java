@@ -3,6 +3,7 @@ package org.wildcodeschool.MyBlog.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.wildcodeschool.MyBlog.dto.ArticleDTO;
+import org.wildcodeschool.MyBlog.exception.ResourceNotFoundException;
 import org.wildcodeschool.MyBlog.mapper.ArticleMapper;
 import org.wildcodeschool.MyBlog.model.*;
 import org.wildcodeschool.MyBlog.repository.*;
@@ -33,14 +34,15 @@ public class ArticleService {
 
     public List<ArticleDTO> getAllArticles() {
         List<Article> articles = articleRepository.findAll();
+        if (articles.isEmpty()) {
+            throw new ResourceNotFoundException("Aucun article trouvé.");
+        }
         return articles.stream().map(articleMapper::convertToDTO).collect(Collectors.toList());
     }
 
     public ArticleDTO getArticleById(@PathVariable Long id) {
-        Article article = articleRepository.findById(id).orElse(null);
-        if (article == null) {
-            return null;
-        }
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("l'article avec l'id " + id +" n'a pas été trouvé."));
         return articleMapper.convertToDTO(article);
     }
 
@@ -49,10 +51,8 @@ public class ArticleService {
         article.setUpdatedAt(LocalDateTime.now());
 
         if(article.getCategory() !=null) {
-            Category category = categoryRepository.findById(article.getCategory().getId()).orElse(null);
-            if (category == null) {
-                return null;
-            }
+            Category category = categoryRepository.findById(article.getCategory().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("La catégorie que vous avez sélectionné est introuvable."));
             article.setCategory(category);
         }
 
@@ -162,12 +162,9 @@ public class ArticleService {
                 Author author = articleAuthorDetails.getAuthor();
 
                 //Recherche par l'ID dans la BDD
-                author = authorRepository.findById(author.getId()).orElse(null);
+                author = authorRepository.findById(author.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("L'auteur que vous avez sélectionné est introuvable."));
 
-                //Si l'auteur n'existe pas, gestion des erreurs
-                if (author == null) {
-                    return null;
-                }
 
                 /**Création d'un nouvel ArticleAuthor qui sera ajouté aux auteurs mis à jour
                  * Affectation de l'auteur, de l'article et de sa contribution.
@@ -194,11 +191,8 @@ public class ArticleService {
     }
 
     public boolean deleteArticle(@PathVariable Long id) {
-        Article article = articleRepository.findById(id).orElse(null);
-        if (article == null) {
-            return false;
-        }
-
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("L'article que vous souhaitez supprimé est introuvable."));
         articleAuthorRepository.deleteAll(article.getArticleAuthors());
         articleRepository.delete(article);
         return true;
@@ -207,7 +201,7 @@ public class ArticleService {
     public List<ArticleDTO>getArticleByTitle(@RequestParam String searchTerms) {
         List<Article> articles = articleRepository.findByTitle(searchTerms);
         if (articles.isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Aucun article ne correspond au titre recherché.");
         }
         return articles.stream().map(articleMapper::convertToDTO).collect(Collectors.toList());
     }
@@ -215,7 +209,7 @@ public class ArticleService {
     public List<ArticleDTO> getArticleByContent(@RequestParam String searchContent) {
         List<Article> articles = articleRepository.findByContentContaining(searchContent);
         if (articles.isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Aucun article ne correspond à ce contenu.");
         }
         return articles.stream().map(articleMapper::convertToDTO).collect(Collectors.toList());
     }
@@ -223,7 +217,7 @@ public class ArticleService {
     public List<ArticleDTO> getArticlesCreatedAfter(@RequestParam LocalDateTime searchDate) {
         List<Article> articles = articleRepository.findByCreatedAtAfter(searchDate);
         if (articles.isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Aucun article postérieur à cette date n'a été trouvé.");
         }
         return articles.stream().map(articleMapper::convertToDTO).collect(Collectors.toList());
     }
@@ -231,7 +225,7 @@ public class ArticleService {
     public List<ArticleDTO>getFiveLastArticles() {
         List<Article> articles = articleRepository.findFiveLastArticlesOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
-            return null;
+            throw new ResourceNotFoundException("Aucun article correspondant à votre recherche n'a été trouvé.");
         }
         return articles.stream().map(articleMapper::convertToDTO).collect(Collectors.toList());
     }
