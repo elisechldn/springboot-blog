@@ -4,80 +4,60 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.wildcodeschool.MyBlog.dto.AuthorDTO;
-import org.wildcodeschool.MyBlog.dto.ImageDTO;
 import org.wildcodeschool.MyBlog.model.Author;
-import org.wildcodeschool.MyBlog.repository.AuthorRepository;
+import org.wildcodeschool.MyBlog.service.AuthorService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/authors")
 public class AuthorController {
 
-    private final AuthorRepository authorRepository;
+    private final AuthorService authorService;
 
-    public AuthorController(AuthorRepository authorRepository) {
-        this.authorRepository = authorRepository;
+    public AuthorController(AuthorService authorService) {
+        this.authorService = authorService;
     }
 
     @GetMapping
     public ResponseEntity<List<AuthorDTO>> getAuthor() {
-        List<Author> authors = authorRepository.findAll();
+        List<AuthorDTO> authors = authorService.getAuthor();
         if (authors.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        //Uniquement quand il s'agit de liste, autrement conversion dans le return
-        List<AuthorDTO> authorDTOS = authors.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-                return ResponseEntity.ok(authorDTOS);
+        return ResponseEntity.ok(authors);
     }
 
     @GetMapping("/id")
     public ResponseEntity<AuthorDTO> getAuthorById(@PathVariable Long id) {
-        Author author = authorRepository.findById(id).orElse(null);
+        AuthorDTO author = authorService.getAuthorById(id);
         if (author == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(convertToDTO(author));
+        return ResponseEntity.ok(author);
     }
 
     @PostMapping
     public ResponseEntity<AuthorDTO> createAuthor(@RequestBody Author author) {
-        Author savedAuthor = authorRepository.save(author);
-        return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedAuthor));
+        AuthorDTO savedAuthor = authorService.createAuthor(author);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedAuthor);
     }
 
     @PutMapping("/id")
-    public ResponseEntity<AuthorDTO> updateAuthor(@RequestBody Author authorDetails, Long id) {
-        Author author = authorRepository.findById(id).orElse(null);
-        if (author == null) {
+    public ResponseEntity<AuthorDTO> updateAuthor(@RequestBody Long id, Author authorDetails) {
+        AuthorDTO updatedAuthor = authorService.updateAuthor(id, authorDetails);
+        if (updatedAuthor == null) {
             return ResponseEntity.notFound().build();
         }
-        Author updatedAuthor = authorRepository.save(authorDetails);
-        return ResponseEntity.ok(convertToDTO(updatedAuthor));
+        return ResponseEntity.ok(updatedAuthor);
     }
 
     @DeleteMapping("/id")
-    public ResponseEntity<AuthorDTO> deleteAuthor(@PathVariable Long id) {
-        Author author = authorRepository.findById(id).orElse(null);
-        if (author == null) {
+    public ResponseEntity<Void> deleteAuthor(@PathVariable Long id) {
+        if(authorService.deleteAuthor(id)) {
+            return ResponseEntity.noContent().build();
+        } else {
             return ResponseEntity.notFound().build();
         }
-        authorRepository.delete(author);
-        return ResponseEntity.noContent().build();
     }
-
-    private AuthorDTO convertToDTO(Author author) {
-        AuthorDTO authorDTO = new AuthorDTO();
-        authorDTO.setId(author.getId());
-        authorDTO.setFirstname(author.getFirstname());
-        authorDTO.setLastname(author.getLastname());
-
-        return authorDTO;
-    }
-
-
 }
