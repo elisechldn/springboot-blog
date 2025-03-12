@@ -3,6 +3,7 @@ package org.wildcodeschool.MyBlog.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 import org.wildcodeschool.MyBlog.dto.ArticleDTO;
+import org.wildcodeschool.MyBlog.dto.CreateArticleDTO;
 import org.wildcodeschool.MyBlog.exception.ResourceNotFoundException;
 import org.wildcodeschool.MyBlog.mapper.ArticleMapper;
 import org.wildcodeschool.MyBlog.model.*;
@@ -46,61 +47,13 @@ public class ArticleService {
         return articleMapper.convertToDTO(article);
     }
 
-    public ArticleDTO createArticle(@RequestBody Article article) {
+    public ArticleDTO createArticle(CreateArticleDTO createArticleDTO) {
+        Article article = articleMapper.convertToEntity(createArticleDTO);
+
         article.setCreatedAt(LocalDateTime.now());
         article.setUpdatedAt(LocalDateTime.now());
 
-        if(article.getCategory() !=null) {
-            Category category = categoryRepository.findById(article.getCategory().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("La catégorie que vous avez sélectionné est introuvable."));
-            article.setCategory(category);
-        }
-
-        if(article.getImages() != null && !article.getImages().isEmpty()) {
-            List<Image> validImages = new ArrayList<>();
-            for (Image image : article.getImages()) {
-                if (image.getId() != null) {
-                    Image existingImage = imageRepository.findById(image.getId()).orElse(null);
-                    if (existingImage != null) {
-                        validImages.add(existingImage);
-                    } else {
-                        return null;
-                    }
-                } else {
-                    Image savedImage = imageRepository.save(image);
-                    validImages.add(savedImage);
-                }
-            }
-            article.setImages(validImages);
-        } else {
-            article.getImages().clear();
-            }
-
-        Article savedArticle = articleRepository.save(article);
-
-        if (article.getArticleAuthors() != null) {
-            //Parcours de la liste d'articleAuthor associé à l'article
-            for (ArticleAuthor articleAuthor : article.getArticleAuthors()) {
-
-                //Récupération de l'auteur associé
-                Author author = articleAuthor.getAuthor();
-
-                //Recherche dans la BDD s'il est existant ou non. Si non: erreur.
-                author = authorRepository.findById(author.getId()).orElse(null);
-                if (author == null) {
-                    return null;
-                }
-                //Si existant, enregistrement de l'auteur, de l'article enregistré et de la contribution
-                articleAuthor.setAuthor(author);
-                articleAuthor.setArticle(savedArticle);
-                articleAuthor.setContribution(articleAuthor.getContribution());
-
-                //Mise à jour de l'articleAuthor.
-                articleAuthorRepository.save(articleAuthor);
-            }
-        }
-
-        return articleMapper.convertToDTO(savedArticle);
+        return articleMapper.convertToDTO(articleRepository.save(article));
     }
 
     public ArticleDTO updateArticle(@PathVariable Long id, @RequestBody Article articleDetails) {
@@ -166,9 +119,9 @@ public class ArticleService {
                         .orElseThrow(() -> new ResourceNotFoundException("L'auteur que vous avez sélectionné est introuvable."));
 
 
-                /**Création d'un nouvel ArticleAuthor qui sera ajouté aux auteurs mis à jour
-                 * Affectation de l'auteur, de l'article et de sa contribution.
-                 * /!\ Enregistrement dans la liste
+                /*Création d'un nouvel ArticleAuthor qui sera ajouté aux auteurs mis à jour
+                  Affectation de l'auteur, de l'article et de sa contribution.
+                  /!\ Enregistrement dans la liste
                  */
                 ArticleAuthor newArticleAuthor = new ArticleAuthor();
                 newArticleAuthor.setAuthor(author);
@@ -223,7 +176,7 @@ public class ArticleService {
     }
 
     public List<ArticleDTO>getFiveLastArticles() {
-        List<Article> articles = articleRepository.findFiveLastArticlesOrderByCreatedAtDesc();
+        List<Article> articles = articleRepository.findTopFiveByOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
             throw new ResourceNotFoundException("Aucun article correspondant à votre recherche n'a été trouvé.");
         }

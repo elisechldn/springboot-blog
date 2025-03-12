@@ -1,7 +1,5 @@
 package org.wildcodeschool.MyBlog.dto;
 
-import org.wildcodeschool.MyBlog.model.ArticleAuthor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -9,6 +7,7 @@ public class ArticleDTO {
     private Long id;
     private String title;
     private String content;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String categoryName;
     private List<String> imageUrls;
@@ -38,6 +37,14 @@ public class ArticleDTO {
         this.content = content;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
@@ -62,7 +69,7 @@ public class ArticleDTO {
         this.imageUrls = imageUrls;
     }
 
-    public void setAuthors(List<AuthorDTO> articleAuthors) {
+    public void setAuthors(List<AuthorDTO> authors) {
         this.authors = authors;
     }
 

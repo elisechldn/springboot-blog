@@ -14,4 +14,13 @@ public class AuthorMapper {
 
         return authorDTO;
     }
+
+    public Author convertToEntity(AuthorDTO authorDTO) {
+        Author author = new Author();
+        author.setId(authorDTO.getId());
+        author.setFirstname(authorDTO.getFirstname());
+        author.setLastname(authorDTO.getLastname());
+
+        return author;
+    }
 }
