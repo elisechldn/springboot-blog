@@ -176,7 +176,7 @@ public class ArticleService {
     }
 
     public List<ArticleDTO>getFiveLastArticles() {
-        List<Article> articles = articleRepository.findTopFiveByOrderByCreatedAtDesc();
+        List<Article> articles = articleRepository.findTop5ByOrderByCreatedAtDesc();
         if (articles.isEmpty()) {
             throw new ResourceNotFoundException("Aucun article correspondant à votre recherche n'a été trouvé.");
         }

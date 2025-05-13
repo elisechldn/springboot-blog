@@ -1,12 +1,8 @@
 package org.wildcodeschool.MyBlog.controller;
 
-import org.apache.catalina.Authenticator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.wildcodeschool.MyBlog.dto.UserLoginDTO;
 import org.wildcodeschool.MyBlog.dto.UserRegistrationDTO;
 import org.wildcodeschool.MyBlog.model.User;
@@ -16,6 +12,7 @@ import org.wildcodeschool.MyBlog.service.UserService;
 import java.util.Set;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/auth")
 public class AuthController {
     private final UserService userService;
